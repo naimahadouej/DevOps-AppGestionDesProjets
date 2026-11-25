@@ -1,0 +1,46 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build Backend') {
+            steps {
+                dir('backend') {
+                    // on passe par le wrapper Maven -> pas besoin d'installer Maven dans Jenkins
+                    sh 'chmod +x mvnw'
+                    sh './mvnw -B clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('Test Backend') {
+            steps {
+                dir('backend') {
+                    // les tests utilisent H2 en memoire (src/test/resources), pas MySQL
+                    sh './mvnw -B test'
+                }
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true, testResults: 'backend/target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('Archive') {
+            steps {
+                archiveArtifacts artifacts: 'backend/target/*.jar', fingerprint: true
+            }
+        }
+    }
+
+    post {
+        success { echo 'Build backend OK, jar archive' }
+        failure { echo 'Le build backend a echoue, voir la console' }
+    }
+}

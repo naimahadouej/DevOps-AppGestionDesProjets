@@ -11,7 +11,7 @@ pipeline {
         stage('Build Backend') {
             steps {
                 dir('backend') {
-                    // on passe par le wrapper Maven -> pas besoin d'installer Maven dans Jenkins
+                    // on passe par le wrapper Maven
                     sh 'chmod +x mvnw'
                     sh './mvnw -B clean package -DskipTests'
                 }
@@ -21,7 +21,7 @@ pipeline {
         stage('Test Backend') {
             steps {
                 dir('backend') {
-                    // les tests utilisent H2 en memoire (src/test/resources), pas MySQL
+                    // les tests utilisent H2 en memoire
                     sh './mvnw -B test'
                 }
             }
